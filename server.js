@@ -136,7 +136,7 @@ const addRol = () => {
         message: 'Enter salary amount:',
         validate: amount => {
             if (amount) {
-                return truw;
+                return true;
             } else {
                 console.log('must enter salary amount');
                 return false;
@@ -144,6 +144,119 @@ const addRol = () => {
         }
     },
     {
-        
-    }])
+        type: 'input',
+        name: 'depId',
+        message: 'Enter department ID for this role:',
+        validate: number => {
+            if (number) {
+                return true;
+            } else {
+                console.log('must enter department ID');
+                return false;
+            }
+        }
+    }]).then(data => {
+        let newRol = [data.newRol, data.salary, data.depId];
+
+        const sql = `INSERT INTO role (title, salary, department_id) VALUES (?,?,?)`;
+
+            db.query(sql, newRol, (err, rows) => {
+                if (err) throw err;
+                console.table(rows);
+                showOptions();
+            })
+    })
+};
+
+const addEmp = () => {
+    inquirer
+        .prompt([{
+                type: 'input',
+                name: 'newEmp',
+                message: 'Enter the first name of the new employee:',
+                validate: firstName => {
+                    if(firstName) {
+                        return true;
+                    } else {
+                        console.log('Must provide a first name:');
+                        return false;
+                    }
+                }
+            },
+            {
+                type: 'input',
+                name: 'newLast',
+                message: 'Enter the last name of the new employee:',
+                validate: lastName => {
+                    if(lastName) {
+                        return true;
+                    } else {
+                        console.log('Must provide a last name:');
+                        return false;
+                    } 
+                }       
+            },
+            {
+                type: 'input',
+                name: 'empMang',
+                message: 'Enter the ID of the manager for the new employee:',
+                validate: empMangId => {
+                    if(empMangId) {
+                        return true;
+                    } else {
+                        console.log('Must provide a manager ID:');
+                        return false;
+                    } 
+                }       
+        }]).then(data => {
+            let newEmpl = [data.firstName, data,lastName, data.empMang];
+
+            const sql = `INSERT INTO employee (first_name, last_name, role_id, manager_id)) VALUES (?,?,?)`;
+
+            db.query(sql, newEmpl, (err, rows) => {
+                if (err) throw err;
+                console.table(rows);
+                showOptions();
+            })
+        })
+};
+
+const updateEmp = () => {
+    const sql = db.query(`SELECT first_name, last_name FROM employee;`)
+
+    inquirer
+        .prompt([{
+            type: 'input',
+            name: 'empId',
+            message: 'Enter employee ID that needs updating:',
+            validate: emplId => {
+                if(emplId) {
+                    return true;
+                } else {
+                    console.log('Must enter an employee ID');
+                    return false;
+                }
+            }
+        },
+        {
+            type: 'input',
+            name: 'newEmpId',
+            message: 'Enter new employee role ID:',
+            validate: newId => {
+                if(newId) {
+                    return true;
+                } else {
+                    console.log('Must enter new ID:')
+                    return false;
+                }
+            }
+        }]).then(data => {
+            db.query(`UPDATE employee SET role_id = ?`, [data.newEmpId, data.empId], (err, input) => {
+                if(err) throw err;
+                console.log('Employee info updated!');
+                showOptions();
+            })
+        })
 }
+
+showOptions();
