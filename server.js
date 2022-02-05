@@ -6,7 +6,7 @@ const showOptions = () => {
     inquirer
         .prompt([{
                     type: 'list',
-                    name: 'options',
+                    name: 'choices',
                     message: 'What would you like to do?',
                     choices: [
                         'View all employees',
@@ -19,25 +19,24 @@ const showOptions = () => {
                     ]
                 }])
 
-    .then(data => {
-        let option = data.options;
+    .then((data) => {
 
-        if (data.option === 'View all employees') {
+        if (data.choices === 'View all employees') {
             viewEmp();
         }
-        else if (data.option === 'View all departments') {
+        else if (data.choices === 'View all departments') {
             viewDep();
         }
-        else if (data.option === 'View all roles') {
+        else if (data.choices === 'View all roles') {
             viewRol();
         }
-        else if (data.option === 'Add a department') {
+        else if (data.choices === 'Add a department') {
             addDep();
         }
-        else if (data.option === 'Add a role') {
+        else if (data.choices === 'Add a role') {
             addRol();
         }
-        else if (data.options === 'Add an employee') {
+        else if (data.choices === 'Add an employee') {
             addEmp();
         }
         else {
@@ -51,14 +50,14 @@ const viewEmp = () => {
     employee.id,
     employee.first_name,
     employee.last_name,
-    role.title,
-    role.salary,
+    roles.title,
+    roles.salary,
     department.name AS 'department',
     employee.manager_id AS 'manager 
     CONCAT (manager.first_name, " ", manager.last_name) AS 'manager.id'
-    FROM employee, role, department
-    WHERE department.id = role.department_id
-    AND role.id = employee.role_id`;
+    FROM employee, roles, department
+    WHERE department.id = roles.department_id
+    AND roles.id = employee.roles_id`;
 
     db.query(sql, (err, rows) => {
         if (err) throw err;
@@ -77,12 +76,12 @@ const viewDep = () => {
 
 const viewRol = () => {
     const sql = `SELECT
-    role.title,
-    role.id,
-    role.salary,
+    roles.title,
+    roles.id,
+    roles.salary,
     department.name AS 'department',
-    FROM role
-    JOIN department ON role.department_id = department.id`;
+    FROM roles
+    JOIN department ON roles.department_id = department.id`;
     db.query(sql, (err, rows) => {
         if (err) throw err;
         console.table(rows);
@@ -98,16 +97,16 @@ const addDep = () => {
             message: 'Enter department name:',
             validate: newName => {
                 if (newName) {
-                    return truw;
+                    return true;
                 } else {
                     console.log('must enter name');
                     return false;
                 }
             }
-        }]) .then(input => {
+        }]) .then(answers => {
             const sql = `INSERT INTO department (name) VALUES (?)`;
 
-            db.query(sql, input.newDep, (err, rows) => {
+            db.query(sql, answers.newDep, (err, rows) => {
                 if (err) throw err;
                 console.table(rows);
                 showOptions();
@@ -123,7 +122,7 @@ const addRol = () => {
             message: 'Enter role title:',
             validate: newRol => {
                 if (newRol) {
-                    return truw;
+                    return true;
                 } else {
                     console.log('must enter role');
                     return false;
@@ -158,7 +157,7 @@ const addRol = () => {
     }]).then(data => {
         let newRol = [data.newRol, data.salary, data.depId];
 
-        const sql = `INSERT INTO role (title, salary, department_id) VALUES (?,?,?)`;
+        const sql = `INSERT INTO roles (title, salary, department_id) VALUES (?,?,?)`;
 
             db.query(sql, newRol, (err, rows) => {
                 if (err) throw err;
@@ -209,7 +208,7 @@ const addEmp = () => {
                     } 
                 }       
         }]).then(data => {
-            let newEmpl = [data.firstName, data,lastName, data.empMang];
+            let newEmpl = [data.firstName, data.lastName, data.empMang];
 
             const sql = `INSERT INTO employee (first_name, last_name, role_id, manager_id)) VALUES (?,?,?)`;
 
@@ -251,7 +250,7 @@ const updateEmp = () => {
                 }
             }
         }]).then(data => {
-            db.query(`UPDATE employee SET role_id = ?`, [data.newEmpId, data.empId], (err, input) => {
+            db.query(`UPDATE employee SET role_id = ?`, [data.newEmpId, data.empId], (err, results) => {
                 if(err) throw err;
                 console.log('Employee info updated!');
                 showOptions();
